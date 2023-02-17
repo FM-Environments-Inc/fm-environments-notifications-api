@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fm-environments-notifications-api-deployment
+  labels:
+    app: fm-environments-notifications-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fm-environments-notifications-api
+  template:
+    metadata:
+      labels:
+        app: fm-environments-notifications-api
+    spec:
+      containers:
+      - name: fm-environments-notifications-api
+        image: kuzyacat/fm-environments-notifications-api
+        ports:
+        - containerPort: 3003
+        env:
+        - name: DB_NAME
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: postgres-user
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: postres-secret
+              key: postgres-password 
+        - name: DB_URL
+          valueFrom:
+            configMapKeyRef:
+              name: postgres-config
+              key: postgres-url
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fm-environments-notifications-service
+spec:
+  type: NodePort
+  selector:
+    app: fm-environments-notifications
+  ports:
+    - protocol: TCP
+      port: 3003
+      targetPort: 3003
+      nodePort: 30103
